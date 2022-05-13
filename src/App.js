@@ -1,17 +1,24 @@
 import './App.css';
-import * as fcl from "@onflow/fcl";
-import * as t from "@onflow/types";
+import * as fcl from '@onflow/fcl';
+import * as t from '@onflow/types';
 import { useEffect, useState } from 'react';
 import { readFlowTokenTotalSupplyScript, readNumberScript } from './cadence/scripts';
 import { updateNumberTx } from './cadence/transactions';
 
-fcl.config()
-  .put("accessNode.api", "https://testnet.onflow.org")
-  .put("discovery.wallet", "https://flow-wallet-testnet.blocto.app/authn")
+const isServerSide = () => typeof window === undefined;
+
+fcl
+  .config()
+  .put('accessNode.api', 'https://testnet.onflow.org')
+  .put('discovery.wallet', 'https://flow-wallet-testnet.blocto.app/authn')
   // .put("accessNode.api", "https://mainnet.onflow.org")
   // .put("discovery.wallet", "https://flow-wallet.blocto.app/authn")
-  .put("0xSimpleTest", "0x6c0d53c676256e8c")
-
+  .put('0xSimpleTest', '0x6c0d53c676256e8c')
+  .put('fcl.storage', {
+    can: !isServerSide(),
+    get: async (key) => JSON.parse(localStorage.getItem(key)),
+    put: async (key, value) => localStorage.setItem(key, JSON.stringify(value)),
+  });
 
 function App() {
   const [user, setUser] = useState();
@@ -21,37 +28,31 @@ function App() {
   }, []);
 
   const readNumber = async () => {
-    const result = await fcl.send([
-      fcl.script(readNumberScript),
-      fcl.args([])
-    ]).then(fcl.decode);
+    const result = await fcl.send([fcl.script(readNumberScript), fcl.args([])]).then(fcl.decode);
 
     console.log(result);
-  }
+  };
 
   const updateNumber = async () => {
-    const transactionId = await fcl.send([
-      fcl.transaction(updateNumberTx),
-      fcl.args([
-        fcl.arg(10, t.Int)
-      ]),
-      fcl.payer(fcl.authz),
-      fcl.proposer(fcl.authz),
-      fcl.authorizations([fcl.authz]),
-      fcl.limit(999)
-    ]).then(fcl.decode);
+    const transactionId = await fcl
+      .send([
+        fcl.transaction(updateNumberTx),
+        fcl.args([fcl.arg(10, t.Int)]),
+        fcl.payer(fcl.authz),
+        fcl.proposer(fcl.authz),
+        fcl.authorizations([fcl.authz]),
+        fcl.limit(999),
+      ])
+      .then(fcl.decode);
 
     console.log(transactionId);
-  }
+  };
 
   const readFlowTokenTotalSupply = async () => {
-    const result = await fcl.send([
-      fcl.script(readFlowTokenTotalSupplyScript),
-      fcl.args([])
-    ]).then(fcl.decode);
+    const result = await fcl.send([fcl.script(readFlowTokenTotalSupplyScript), fcl.args([])]).then(fcl.decode);
 
     console.log(result);
-  }
+  };
 
   return (
     <div className="App">
