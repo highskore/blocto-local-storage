@@ -5,7 +5,12 @@ import { useEffect, useState } from 'react';
 import { readFlowTokenTotalSupplyScript, readNumberScript } from './cadence/scripts';
 import { updateNumberTx } from './cadence/transactions';
 
-const isServerSide = () => typeof window === undefined;
+const isServerSide = () => typeof window === 'undefined';
+const LOCAL_STORAGE = {
+  can: !isServerSide(),
+  get: async (key) => JSON.parse(localStorage.getItem(key)),
+  put: async (key, value) => localStorage.setItem(key, JSON.stringify(value)),
+};
 
 fcl
   .config()
@@ -14,11 +19,7 @@ fcl
   // .put("accessNode.api", "https://mainnet.onflow.org")
   // .put("discovery.wallet", "https://flow-wallet.blocto.app/authn")
   .put('0xSimpleTest', '0x6c0d53c676256e8c')
-  .put('fcl.storage', {
-    can: !isServerSide(),
-    get: async (key) => JSON.parse(localStorage.getItem(key)),
-    put: async (key, value) => localStorage.setItem(key, JSON.stringify(value)),
-  });
+  .put('fcl.storage', LOCAL_STORAGE);
 
 function App() {
   const [user, setUser] = useState();
